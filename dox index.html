@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Madam Ji! ✨</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) translateX(0); opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(20px); opacity: 0; }
+        }
+        .heart {
+            position: absolute;
+            color: #fbcfe8;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 8s linear infinite;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        .pulse-text {
+            animation: pulse-slow 2s infinite;
+        }
+        @keyframes dance {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        .banner-letter {
+            animation: dance 2s ease-in-out infinite;
+        }
+        /* Fullscreen background video scaling */
+        .bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="m-0 font-sans overflow-x-hidden antialiased select-none bg-slate-950">
+
+    <!-- ==========================================
+       BACKGROUND VIDEO ELEMENT (Hidden initially)
+       ========================================== -->
+    <div id="video-bg-container" class="hidden fixed inset-0 z-0 transition-opacity duration-1000 opacity-0 pointer-events-none">
+        <video id="bg-video" class="bg-video blur-sm brightness-[0.4]" loop muted playsinline>
+            <source src="Snapchat-1843178165.mp4" type="video/mp4">
+        </video>
+        <!-- Soft color overlay to keep text readable over the video -->
+        <div class="absolute inset-0 bg-pink-950/20 mix-blend-overlay"></div>
+    </div>
+
+    <!-- ==========================================
+       1. GREETING WIZARD SCREEN
+       ========================================== -->
+    <div id="wizard-screen" class="flex flex-col items-center justify-center min-h-screen bg-pink-50 p-6 text-center relative overflow-hidden z-10">
+        <!-- Floating hearts background container -->
+        <div id="hearts-container" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+
+        <div id="wizard-card" class="bg-white/80 backdrop-blur-md p-8 md:p-12 rounded-3xl shadow-xl max-w-xl w-full border border-pink-100 z-10 cursor-pointer transition-all duration-300 transform scale-100">
+            <p id="wizard-text" class="text-2xl md:text-3xl font-semibold text-slate-800 leading-relaxed mb-8">
+                It's Your Special Day Yeyey! ✨
+            </p>
+
+            <div id="hint-text" class="text-sm text-slate-400 pulse-text">
+                Click anywhere to continue...
+            </div>
+
+            <div id="button-container" class="hidden flex gap-4 justify-center">
+                <button onclick="completeWizard()" class="px-8 py-3 bg-pink-500 hover:bg-pink-600 active:scale-95 text-white font-semibold rounded-full shadow-lg shadow-pink-500/20 transition-all duration-200 text-lg">
+                    Yes! 😍
+                </button>
+                <button onclick="wrongAnswer()" class="px-8 py-3 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-600 font-semibold rounded-full transition-all duration-200 text-lg">
+                    No
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+       2. INTERACTIVE DASHBOARD SCREEN
+       ========================================== -->
+    <div id="dashboard-screen" class="hidden min-h-screen transition-colors duration-1000 flex flex-col items-center justify-start p-6 overflow-x-hidden relative z-10">
+        
+        <!-- Action Control Button Header -->
+        <div class="w-full max-w-md sticky top-4 z-50 mb-8 px-4">
+            <button id="action-btn" onclick="handleDashboardAction()" class="w-full py-4 px-6 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold rounded-full shadow-xl hover:brightness-110 active:scale-98 transition-all text-center tracking-wide">
+                💡 Lights On
+            </button>
+        </div>
+
+        <!-- Decorative Stage Arena -->
+        <div class="w-full max-w-3xl flex flex-col items-center relative min-h-[500px]">
+            
+            <audio id="birthday-song" src="Thinking Of You Ap Dhillon 320 Kbps.mp3" preload="auto"></audio>
+
+            <!-- Floating Balloons Simulation Area -->
+            <div id="balloons-container" class="hidden absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
+
+            <!-- Music Spectrum Audio Bars Simulation -->
+            <div id="audio-waves" class="hidden absolute top-16 right-4 flex gap-1 z-30 bg-white/80 p-2 rounded-full shadow-md">
+                <div class="w-1 bg-pink-500 h-6 rounded-full animate-bounce"></div>
+                <div class="w-1 bg-pink-500 h-6 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-1 bg-pink-500 h-6 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1 bg-pink-500 h-6 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+            </div>
+
+            <!-- Birthday Banner Component -->
+            <div id="birthday-banner" class="hidden w-full flex justify-center mb-8 opacity-0 transition-opacity duration-700">
+                <div class="relative w-full max-w-md">
+                    <svg class="w-full h-12 absolute top-0" viewBox="0 0 400 50">
+                        <path d="M0,10 Q200,50 400,10" fill="transparent" stroke="#db2777" stroke-width="2" stroke-dasharray="4 4" />
+                    </svg>
+                    <div id="banner-letters" class="flex justify-between px-6 pt-4 relative z-10"></div>
+                </div>
+            </div>
+
+            <!-- Main Display Area (Pictures + Cake Side by Side) -->
+            <div id="main-stage" class="hidden opacity-0 transition-all duration-700 scale-95 flex flex-col md:flex-row items-center justify-center gap-8 my-8 z-10 w-full px-4">
+                
+                <!-- Left Side: Polaroids / Image Gallery -->
+                <div class="flex gap-4 transform -rotate-2">
+                    <!-- Polaroid 1 -->
+                    <div class="bg-white p-3 pb-8 rounded-sm shadow-xl max-w-[160px] border border-slate-100 transform -rotate-3 hover:rotate-0 hover:scale-105 transition-all duration-300">
+                        <img src="Snapchat-689683426.jpg" alt="Madam Ji 1" class="w-full h-40 object-cover bg-pink-100 rounded-sm" onerror="this.src='https://images.unsplash.com/photo-1513201099495-a6697de52639?w=400'"/>
+                        <div class="text-center font-serif text-xs text-slate-500 mt-3 italic">✨ Special Moments</div>
+                    </div>
+
+                    <!-- Polaroid 2 -->
+                    <div class="bg-white p-3 pb-8 rounded-sm shadow-xl max-w-[160px] border border-slate-100 transform rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-300">
+                        <img src="Snapchat-829416052.jpg" alt="Madam Ji 2" class="w-full h-40 object-cover bg-pink-100 rounded-sm" onerror="this.src='https://images.unsplash.com/photo-1464349172961-4a41338f647d?w=400'"/>
+                        <div class="text-center font-serif text-xs text-slate-500 mt-3 italic">🎂 Birthday Girl</div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Cake Block -->
+                <div class="relative flex flex-col items-center transform rotate-2">
+                    <!-- Animated Candle Flame -->
+                    <div id="candle-flame" class="w-3 h-8 bg-gradient-to-t from-orange-400 to-yellow-300 rounded-full blur-[2px] absolute -top-8 z-20 transition-opacity duration-300"></div>
+                    
+                    <!-- Dog Face Cake Illustration -->
+                    <div class="w-44 h-44 bg-amber-100 rounded-full border-8 border-amber-800 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-1/2 flex justify-between w-28 px-2">
+                          <div class="w-4 h-4 bg-slate-800 rounded-full"></div>
+                          <div class="w-4 h-4 bg-slate-800 rounded-full"></div>
+                        </div>
+                        <div class="w-7 h-5 bg-amber-900 rounded-full mt-8"></div>
+                        <div id="cake-text" class="w-32 h-7 bg-pink-300 absolute bottom-3 rounded-full flex items-center justify-center text-white font-bold text-[10px] uppercase tracking-widest shadow-inner">
+                          Happy Birthday
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Hidden Message Letter Block -->
+            <div id="message-letter" class="hidden w-full max-w-xl bg-white/90 backdrop-blur-md border border-pink-100 shadow-2xl rounded-3xl p-6 md:p-8 text-slate-700 leading-relaxed z-30 font-sans transition-all duration-700 transform translate-y-8 opacity-0">
+                <h3 class="text-xl font-bold text-pink-600 border-b pb-3 mb-4 flex items-center gap-2">
+                    Dear Shreya Ji, 💌
+                </h3>
+                <p class="mb-4">
+                    Happiest birthday my precious person. Thank you for coming into my life you make my life colourful and joyful. You are my best decision that I have ever made in my life until now. You are just perfect for me I like your everything how you console me take care of me . I❤️U  Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy Birthday Happy ❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️
+                </p>
+               
+                <p class="text-pink-500 font-semibold text-center mt-6 border-t pt-4 italic">
+                    And on your special day, I wish you the happiest birthday! 🎉✨
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==========================================
+       3. ORCHESTRATION LOGIC SCRIPT
+       ========================================== -->
+    <script>
+        let currentStep = 0;
+        const steps = [
+            "It's Your Special Day Yeyey! ✨",
+            "I wanted to make something special for you because you are special to me!",
+            "Do you wanna see what I made?? 🤭"
+        ];
+
+        const heartsContainer = document.getElementById('hearts-container');
+        for (let i = 0; i < 15; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerText = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDelay = Math.random() * 5 + 's';
+            heart.style.animationDuration = (6 + Math.random() * 4) + 's';
+            heartsContainer.appendChild(heart);
+        }
+
+        document.getElementById('wizard-card').addEventListener('click', function(e) {
+            if (currentStep < 2) {
+                currentStep++;
+                document.getElementById('wizard-text').innerText = steps[currentStep];
+                if (currentStep === 2) {
+                    document.getElementById('hint-text').classList.add('hidden');
+                    document.getElementById('button-container').classList.remove('hidden');
+                }
+            }
+        });
+
+        function wrongAnswer() {
+            alert("Wrong answer! Try again. 😜");
+        }
+
+        function completeWizard() {
+            document.getElementById('wizard-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+        }
+
+        let currentActionIndex = 0;
+        const actions = [
+            { label: "💡 Lights On", perform: () => turnOnLights() },
+            { label: "🎵 Play Music", perform: () => startMusicAnimation() },
+            { label: "✨ Decorate", perform: () => deployBanners() },
+            { label: "🎈 Fly the Balloons", perform: () => releaseBalloons() },
+            { label: "🎂 Let's Cut the Cake Madam Ji", perform: () => sliceCake() },
+            { label: "✉️ Well, I Have a Message for You Madam Ji", perform: () => openLetter() }
+        ];
+
+        function handleDashboardAction() {
+            actions[currentActionIndex].perform();
+        }
+
+        function updateActionButton() {
+            currentActionIndex++;
+            if (currentActionIndex < actions.length) {
+                document.getElementById('action-btn').innerText = actions[currentActionIndex].label;
+            } else {
+                document.getElementById('action-btn').disabled = true;
+                document.getElementById('action-btn').classList.add('opacity-50');
+            }
+        }
+
+        function turnOnLights() {
+            // Reveal and trigger full-screen background video elements
+            const videoContainer = document.getElementById('video-bg-container');
+            const videoElement = document.getElementById('bg-video');
+            
+            videoContainer.classList.remove('hidden');
+            setTimeout(() => {
+                videoContainer.classList.remove('opacity-0');
+                videoContainer.classList.add('opacity-100');
+            }, 50);
+
+            if (videoElement) {
+                videoElement.play().catch(error => {
+                    console.log("Autoplay context blocked or muted required.", error);
+                });
+            }
+
+            const mainStage = document.getElementById('main-stage');
+            mainStage.classList.remove('hidden');
+            setTimeout(() => {
+                mainStage.classList.remove('opacity-0', 'scale-95');
+                mainStage.classList.add('opacity-100', 'scale-100');
+            }, 50);
+
+            updateActionButton();
+        }
+
+        function startMusicAnimation() {
+            document.getElementById('audio-waves').classList.remove('hidden');
+            
+            const song = document.getElementById('birthday-song');
+            if (song) {
+                song.play().catch(error => {
+                    console.log("Audio playback failed.", error);
+                });
+            }
+            
+            updateActionButton();
+        }
+
+        function deployBanners() {
+            const banner = document.getElementById('birthday-banner');
+            const lettersContainer = document.getElementById('banner-letters');
+            const message = "HAPPYBIRTHDAY";
+            
+            message.split('').forEach((char, index) => {
+                const node = document.createElement('div');
+                node.className = 'banner-letter bg-yellow-300 text-pink-600 font-extrabold w-7 h-9 flex items-center justify-center rounded-b-md shadow-md text-xs border-t-4 border-pink-500';
+                node.innerText = char;
+                node.style.animationDelay = (index * 0.1) + 's';
+                lettersContainer.appendChild(node);
+            });
+
+            banner.classList.remove('hidden');
+            setTimeout(() => banner.classList.remove('opacity-0'), 50);
+            updateActionButton();
+        }
+
+        function releaseBalloons() {
+            const container = document.getElementById('balloons-container');
+            container.classList.remove('hidden');
+            const colors = ['bg-red-400', 'bg-blue-400', 'bg-green-400', 'bg-yellow-400', 'bg-pink-400', 'bg-purple-400'];
+
+            for (let i = 0; i < 15; i++) {
+                const balloon = document.createElement('div');
+                const randomColor = colors[i % colors.length];
+                balloon.className = `absolute w-12 h-16 ${randomColor} rounded-full flex flex-col items-center`;
+                balloon.style.left = Math.random() * 80 + '%';
+                balloon.style.bottom = '-100px';
+                
+                const string = document.createElement('div');
+                string.className = 'w-0.5 h-12 bg-slate-300/60 mt-16';
+                balloon.appendChild(string);
+                
+                balloon.animate([
+                    { transform: 'translateY(0)', opacity: 0.9 },
+                    { transform: 'translateY(-1200px)', opacity: 0.9 }
+                ], {
+                    duration: 6000 + Math.random() * 4000,
+                    iterations: Infinity,
+                    delay: Math.random() * 2000
+                });
+
+                container.appendChild(balloon);
+            }
+
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            updateActionButton();
+        }
+
+        function sliceCake() {
+            document.getElementById('candle-flame').classList.add('opacity-0');
+            document.getElementById('cake-text').innerText = "🎂 Cut Done!";
+            document.getElementById('cake-text').classList.remove('bg-pink-300');
+            document.getElementById('cake-text').classList.add('bg-emerald-400');
+            
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            updateActionButton();
+        }
+
+        function openLetter() {
+            const letter = document.getElementById('message-letter');
+            letter.classList.remove('hidden');
+            setTimeout(() => {
+                letter.classList.remove('opacity-0', 'translate-y-8');
+                letter.classList.add('opacity-100', 'translate-y-0');
+                letter.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+            updateActionButton();
+        }
+    </script>
+</body>
+</html>
